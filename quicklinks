@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+
+import difflib
+import json
+import os
+import sys
+
+
+LINKS = (
+    ('Google', 'https://www.google.com'),
+)
+
+
+def string_ratio(a, b):
+    ''' Compute ratio of string similarity (higher is better)
+    https://stackoverflow.com/questions/17388213/find-the-similarity-metric-between-two-strings#17388505
+    '''
+    return difflib.SequenceMatcher(None, a, b).ratio()
+
+
+class App(object):
+ 
+    def __init__(self):
+        self.matches = []
+
+    def activate(self, index):
+        if not self.matches:
+            return
+
+        os.system(f'xdg-open "{self.matches[int(index)][1]}" & disown')
+        sys.stdout.write('"Close"\n')
+        sys.stdout.flush()
+
+    def search(self, query):
+        query = query.split(maxsplit=1)[-1].strip().lower()
+        self.matches = [
+            (description, link, string_ratio(query, description))
+            for description, link in LINKS if query in description
+        ]
+
+        self.matches.sort(key=lambda p: p[2], reverse=True)
+
+        for index, (description, link, ratio) in enumerate(self.matches):
+            sys.stdout.write(json.dumps({
+                'Append': {
+                    'id': index,
+                    'name': description,
+                    'description': link,
+                    'keywords': None,
+                    'icon': None,
+                    'exec': None,
+                    'window': None
+                }
+            }))
+            sys.stdout.write('\n')
+
+        sys.stdout.write('"Finished"\n')
+        sys.stdout.flush()
+
+
+def main():
+    app = App()
+
+    for line in sys.stdin:
+        try:
+            request = json.loads(line)
+            if 'Search' in request:
+                app.search(request['Search'])
+            elif 'Activate' in request:
+                app.activate(request['Activate'])
+        except json.decoder.JSONDecodeError:
+            pass
+
+
+if __name__ == '__main__':
+    main()

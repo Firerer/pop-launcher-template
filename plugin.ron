@@ -1,0 +1,18 @@
+(
+    name: "Quicklinks",
+    description: "Syntax: links <query>",
+    query: (
+        // Optional -- if we should isolate this plugin when the regex matches
+        isolate: true,
+        // Optional -- Plugin which searches on empty queries
+        persistent: true,
+        // Optional -- avoid sorting results from this plugin
+        no_sort: true,
+        // Optional -- pattern that a query must have to be sent to plugin
+        regex: "^(links|l)\\s.*",
+        // Optional -- the launcher should keep a history for this plugin
+        history: true,
+    ),
+    bin: (path: "quicklinks"),
+    icon: Name("font-x-generic-symbolic")
+)
